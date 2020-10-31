@@ -33,8 +33,7 @@ var boardEntries = {}
 			incr++;
 			boardEntries[incr] = {};
 		}
-		
-		if(cell.slice(0,1) == "B"){
+		if(cell.slice(0,1) == "I"){
 		
 			boardEntries[incr].title = data.content.$t;
 		
@@ -56,7 +55,7 @@ var boardEntries = {}
 		}					
 		if(cell.slice(0,1) == "F"){
 		
-			boardEntries[incr].status = data.content.$t;
+			boardEntries[incr].status = data.content.$t.toLowerCase();
 		
 		}			
 		if(cell.slice(0,1) == "G"){
@@ -68,7 +67,10 @@ var boardEntries = {}
 		
 			boardEntries[incr].addit = data.content.$t;
 		
-		}			
+		}
+		if(cell.slice(0,1) == "B"){
+			boardEntries[incr].category = data.content.$t;
+		}
 			
 		}
 	
@@ -230,7 +232,7 @@ client.on('message', message => {
 	//const collector = message.createReactionCollector(filter, {});
 	
 	if(commandName == "help"){
-	message.channel.send("To post a Quest on our quest board, fill out the form here: https://forms.gle/Hh7PcsBa8WLD745eA \nTo refresh the board, type !post or !updateboard. \nTo update a quest's status, type !update. This bot works in personal messages too.");
+	message.channel.send("To post a Quest on our quest board, fill out the form here: https://forms.gle/Hh7PcsBa8WLD745eA \nTo refresh the board, type !post or !updateboard. \nTo update a quest's status, type !update. This bot works in personal messages too.\nTo see all posts in a category, send !list followed by a category.");
 	}
 	
 	if(commandName == "updateboard" || commandName == "post"){
@@ -239,13 +241,13 @@ client.on('message', message => {
 
 		request(options, callback);
 		
-		
+		for(i = 0; i < 2; i++){
 		getStatusData(function(res){
 			for(var i in boardEntries){
 				if(!res[i]){
 					console.log("dosn't exist!, adding");
 					thisEntry = boardEntries[i];
-					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit);
+					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit, thisEntry.category);
 					
 					if(boardEntries[i].status == "open"){
 			
@@ -275,7 +277,7 @@ client.on('message', message => {
 						removePost(res[i].status, res[i].id);
 					}
 					thisEntry = boardEntries[i];
-					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit);
+					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit, thisEntry.category);
 					
 					if(boardEntries[i].status == "open"){
 			
@@ -308,7 +310,9 @@ client.on('message', message => {
 				
 			}
 			
+			
 		});
+		}
 	}
 
 		
@@ -323,7 +327,27 @@ client.on('message', message => {
 			//console.log(id);
 		//});
 	
-	
+	if(commandName == "list"){
+		if(args[0]){
+			console.log(args[0]);
+			console.log(boardEntries);
+			for(var i in boardEntries){
+				if(boardEntries[i].category == args[0] && boardEntries[i].status == "open"){
+				console.log("buildin");
+					thisEntry = boardEntries[i];
+					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit, thisEntry.category);
+
+					message.channel.send({embed:post});
+				}
+			}
+		}
+		else{
+			
+			message.channel.send("Type !list followed by a category to see all posts related to that category. The categories are Art, Music, Programming and Writing.");
+		}
+		
+		
+	}
 	if(commandName == "update"){
 				
 				
@@ -367,7 +391,7 @@ client.on('message', message => {
 				if(!res[i]){
 					console.log("dosn't exist!, adding");
 					thisEntry = boardEntries[i];
-					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit);
+					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit, thisEntry.category);
 
 					if(boardEntries[i].status == "open"){
 			
@@ -397,7 +421,7 @@ client.on('message', message => {
 						removePost(res[i].status, res[i].id);
 					}
 					thisEntry = boardEntries[i];
-					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit);
+					post = createEmbed(thisEntry.title, thisEntry.descrip, thisEntry.contact, thisEntry.dueDate, thisEntry.status, thisEntry.addit, thisEntry.category);
 					
 					if(boardEntries[i].status == "open"){
 			
@@ -547,13 +571,36 @@ sendAndSaveId = function(channel, id){
 }
 
 	
-createEmbed = function(title, description, contactInfo, dueDate, cond, addit){
+createEmbed = function(title, description, contactInfo, dueDate, cond, addit, category){
+   
+   if(!title || title == ""){
+		title = "None";
+	}
+	if(!description || description == ""){
+		description = "None";		
+	}
+	if(!contactInfo || contactInfo == ""){
+	    contactInfo = "None";
+	}
+	if(!dueDate || dueDate == ""){
+		dueDate = "None";
+	}
+	if(!cond || cond == ""){
+	    cond = "None";
+	}
+	if(!addit || addit == ""){
+		addit = "None";
+	}
+	if(!category || category == ""){
+	    category = "None";
+	}
+	console.log(addit);
 	const embedPost = {
 				color: 0x0099ff,
 				title: title,
 				url: 'https://www.ubcgamedev.com/',
 				author: {
-				name: 'Bounty Quest',
+				name: 'Quest',
 				icon_url: 'https://i.imgur.com/Pk6Xe30.png',
 				url: 'https://www.ubcgamedev.com/',
 				},
@@ -564,8 +611,8 @@ createEmbed = function(title, description, contactInfo, dueDate, cond, addit){
 				fields: [
 
 					{
-					name: '\u200b',
-					value: '\u200b',
+					name: "Category",
+					value:  category,
 					inline: false,
 					},
 					{
