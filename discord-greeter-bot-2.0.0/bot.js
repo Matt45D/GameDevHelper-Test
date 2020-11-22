@@ -107,6 +107,7 @@ var devServer;
 
 client.on('ready', () => {
 	var channel = client.channels.get(config.reactChan);
+	console.log(channel);
 	devServer = client;
 	channel.fetchMessage(config.reactMsg)
   .then(message => {
